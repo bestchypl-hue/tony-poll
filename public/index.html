@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>โพลคุณโทนี่</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mitr:wght@500&family=Noto+Sans+Thai:wght@400;600&display=swap">
+<style>
+/* Layout: one narrow centered column. Big question first, then two full-width answer buttons in green and red; result bars appear under each button after a vote. */
+:root {
+  --bg: #f6f7f5;
+  --fg: #17201b;
+  --muted: #5d6a62;
+  --line: #d3dad5;
+  --track: #e3e9e5;
+  --green: #1a7f45;
+  --on-green: #ffffff;
+  --red: #c62828;
+  --on-red: #ffffff;
+  --font-display: "Mitr", "Noto Sans Thai", system-ui, sans-serif;
+  --font-body: "Noto Sans Thai", system-ui, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #121613;
+    --fg: #eef3ef;
+    --muted: #9aa7a0;
+    --line: #2b352e;
+    --track: #232b25;
+    --green: #4cc582;
+    --on-green: #08210f;
+    --red: #ff7070;
+    --on-red: #2b0707;
+    color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+}
+.wrap {
+  max-width: 520px;
+  margin-inline: auto;
+  padding-inline: 16px;
+  padding-block: 40px 56px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+.head { display: flex; flex-direction: column; gap: 10px; }
+.eyebrow { font-size: 13px; letter-spacing: 0.04em; color: var(--muted); }
+h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(2.1rem, 10vw, 3.2rem);
+  line-height: 1.25;
+  text-wrap: balance;
+}
+.hint { margin: 0; color: var(--muted); }
+.options { display: flex; flex-direction: column; gap: 20px; }
+.opt { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.choice {
+  appearance: none;
+  border: 0;
+  border-radius: 10px;
+  padding: 18px 20px;
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  text-align: left;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 1.15rem;
+  line-height: 1.35;
+  cursor: pointer;
+  transition: transform 0.12s ease;
+}
+.choice.green { background: var(--green); color: var(--on-green); }
+.choice.red { background: var(--red); color: var(--on-red); }
+.choice:hover:not(:disabled) { transform: translateY(-2px); }
+.choice:active:not(:disabled) { transform: translateY(0); }
+.choice:focus-visible { outline: 3px solid var(--fg); outline-offset: 3px; }
+.choice[aria-pressed="true"] { outline: 3px solid var(--fg); outline-offset: 3px; }
+.choice:disabled { opacity: 0.6; cursor: wait; }
+.label { min-width: 0; overflow-wrap: anywhere; }
+.mark { font-size: 0.85rem; font-weight: 400; white-space: nowrap; }
+.result { display: flex; align-items: center; gap: 12px; }
+.track {
+  flex: 1;
+  min-width: 0;
+  height: 12px;
+  border-radius: 6px;
+  background: var(--track);
+  overflow: hidden;
+}
+.fill { height: 100%; width: 0; border-radius: 6px; transition: width 0.5s ease; }
+.green + .result .fill { background: var(--green); }
+.red + .result .fill { background: var(--red); }
+.num {
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  min-width: 7.5em;
+  text-align: right;
+}
+.foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
+  color: var(--muted);
+  font-size: 0.9rem;
+  min-height: 2.6em;
+}
+.peek {
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 0;
+  color: var(--fg);
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.peek:focus-visible { outline: 3px solid var(--fg); outline-offset: 3px; }
+.status { margin: 0; font-size: 0.9rem; min-height: 1.4em; }
+[hidden] { display: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  .choice, .fill { transition: none; }
+}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <header class="head">
+    <div class="eyebrow">โพลแบบไม่ระบุตัวตน · ผลไม่แสดงชื่อใคร</div>
+    <h1>เตะคุณโทนี่ไหม</h1>
+    <p class="hint">เลือกได้ข้อเดียว เปลี่ยนใจกดอีกข้อได้</p>
+  </header>
+
+  <section class="options" aria-label="ตัวเลือก">
+    <div class="opt" id="opt-yes">
+      <button class="choice green" id="btn-yes" type="button" aria-pressed="false">
+        <span class="label">ใช่</span>
+        <span class="mark" hidden>✓ ที่คุณเลือก</span>
+      </button>
+      <div class="result" hidden>
+        <div class="track"><div class="fill"></div></div>
+        <span class="num">0 คน · 0%</span>
+      </div>
+    </div>
+
+    <div class="opt" id="opt-yesred">
+      <button class="choice red" id="btn-yesred" type="button" aria-pressed="false">
+        <span class="label">ใช่เหมือนกัน แต่สีแดง</span>
+        <span class="mark" hidden>✓ ที่คุณเลือก</span>
+      </button>
+      <div class="result" hidden>
+        <div class="track"><div class="fill"></div></div>
+        <span class="num">0 คน · 0%</span>
+      </div>
+    </div>
+  </section>
+
+  <p class="status" id="status" role="status" aria-live="polite"></p>
+
+  <div class="foot">
+    <span id="total"></span>
+    <button class="peek" id="peek" type="button">ดูผลโหวตโดยไม่โหวต</button>
+  </div>
+</main>
+
+<script>
+(function () {
+  var API = "/api/poll";
+  var CHOICES = ["yes", "yesred"];
+  var counts = { yes: 0, yesred: 0 };
+  var mine = null, busy = false, peek = false;
+  var memId = null;
+
+  function $(id) { return document.getElementById(id); }
+  function setStatus(t) { $("status").textContent = t || ""; }
+
+  function newId() {
+    if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+    return String(Math.random()).slice(2) + String(Date.now());
+  }
+  // A random token kept only in this browser. The server stores a hash of it
+  // to stop one browser counting twice. It is not linked to any name.
+  function voterId() {
+    try {
+      var v = localStorage.getItem("tony-poll-voter");
+      if (!v) { v = newId(); localStorage.setItem("tony-poll-voter", v); }
+      return v;
+    } catch (e) {
+      if (!memId) memId = newId();
+      return memId;
+    }
+  }
+
+  function render() {
+    var total = counts.yes + counts.yesred;
+    var showResults = mine !== null || peek;
+    CHOICES.forEach(function (c) {
+      var opt = $("opt-" + c);
+      var pct = total ? Math.round((counts[c] / total) * 100) : 0;
+      opt.querySelector(".result").hidden = !showResults;
+      opt.querySelector(".fill").style.width = pct + "%";
+      opt.querySelector(".num").textContent = counts[c] + " คน · " + pct + "%";
+      opt.querySelector(".mark").hidden = mine !== c;
+      var btn = $("btn-" + c);
+      btn.setAttribute("aria-pressed", mine === c ? "true" : "false");
+      btn.disabled = busy;
+    });
+    $("total").textContent = showResults ? "โหวตแล้ว " + total + " คน" : "";
+    $("peek").hidden = showResults;
+  }
+
+  function apply(data) {
+    if (data && data.counts) {
+      counts = { yes: data.counts.yes || 0, yesred: data.counts.yesred || 0 };
+      mine = data.mine === "yes" || data.mine === "yesred" ? data.mine : null;
+    }
+    render();
+  }
+
+  async function load() {
+    try {
+      var r = await fetch(API + "?voter=" + encodeURIComponent(voterId()), { cache: "no-store" });
+      if (!r.ok) throw new Error("http " + r.status);
+      apply(await r.json());
+      setStatus("");
+    } catch (e) {
+      setStatus("โหลดผลโหวตไม่ได้ ลองรีเฟรชหน้านี้");
+    }
+  }
+
+  async function vote(c) {
+    if (busy || mine === c) return;
+    busy = true;
+    render();
+    setStatus("");
+    try {
+      var r = await fetch(API, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ voter: voterId(), choice: c }),
+      });
+      if (!r.ok) throw new Error("http " + r.status);
+      apply(await r.json());
+    } catch (e) {
+      setStatus("ส่งโหวตไม่สำเร็จ ลองกดอีกครั้ง");
+    }
+    busy = false;
+    render();
+  }
+
+  $("btn-yes").addEventListener("click", function () { vote("yes"); });
+  $("btn-yesred").addEventListener("click", function () { vote("yesred"); });
+  $("peek").addEventListener("click", function () { peek = true; render(); });
+
+  render();
+  load();
+  setInterval(function () {
+    if (document.visibilityState === "visible" && !busy && (mine !== null || peek)) load();
+  }, 15000);
+})();
+</script>
+</body>
+</html>
